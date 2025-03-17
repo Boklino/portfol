@@ -105,29 +105,51 @@ export default function Home() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    emailjs
-      .sendForm(SERVICE_ID, TEMPLATE_ID, e.target as HTMLFormElement, USER_ID)
-      .then(
-        (result) => {
-          console.log(result.text);
-          Swal.fire({
-            icon: "success",
-            title: "Message Sent Successfully",
-          });
-          (e.target as HTMLFormElement).reset();
-        },
-        (error) => {
-          console.log(error.text);
-          Swal.fire({
-            icon: "error",
-            title: "Oops, something went wrong",
-            text: error.text,
-          });
-        }
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    formData.append("to_email", "youssefalbokl@gmail.com");
+    // Debugging: Log form data
+    console.log("Form Data:", Object.fromEntries(formData));
+
+    if (!formData.get("to_email")) {
+      console.error("❌ Missing recipient email!");
+      Swal.fire({
+        icon: "error",
+        title: "Recipient email is missing!",
+        text: "Please check your form and EmailJS template.",
+      });
+      return;
+    }
+
+    try {
+      const result = await emailjs.sendForm(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        form,
+        USER_ID
       );
+
+      console.log("✅ Email sent successfully:", result.text);
+
+      Swal.fire({
+        icon: "success",
+        title: "Message Sent Successfully!",
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error("❌ Email sending error:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops, something went wrong",
+        text: "Please check your EmailJS configuration and try again.",
+      });
+    }
   };
 
   return (
@@ -649,6 +671,11 @@ export default function Home() {
                 Contact me
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
+                <input
+                  type="hidden"
+                  name="to_email"
+                  value="youssefalbokl@gmail.com"
+                />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label
